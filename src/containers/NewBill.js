@@ -21,26 +21,33 @@ export default class NewBill {
 
     if (basename === "" || pos < 1) return false; // return false if file name is empty or `.` not found (-1) or comes first (0)
 
-    if (basename.slice(pos + 1).match(/(png|jpg|jpeg)/g)) return true; // return true if match to regex
+    if (basename.slice(pos + 1).match(/(png|jpg|jpeg)/g)) {
+      return true;
+    } else {
+      return false;
+    } // return true if match to regex
   };
   handleChangeFile = (e) => {
-    const file = this.document.querySelector(`input[data-testid="file"]`).files[0];
+    const input = this.document.querySelector(`input[data-testid="file"]`);
+    const file = input.files[0];
     const filePath = e.target.value.split(/\\/g);
     const fileName = filePath[filePath.length - 1];
+    if (!this.checkFileExtension(fileName)) {
+      input.value = "";
+      return alert("Veuillez insérer un justificatif au format .jpg, .jpeg ou .png ");
+    }
     this.firestore.storage
       .ref(`justificatifs/${fileName}`)
       .put(file)
       .then((snapshot) => snapshot.ref.getDownloadURL())
       .then((url) => {
         this.fileUrl = url;
-        this.fileName = this.checkFileExtension(fileName) === true ? fileName : "invalid";
+        this.fileName = fileName;
       });
   };
   handleSubmit = (e) => {
     e.preventDefault();
     console.log('e.target.querySelector(`input[data-testid="datepicker"]`).value', e.target.querySelector(`input[data-testid="datepicker"]`).value);
-
-    if (this.fileName === "invalid") return alert("Veuillez insérer un justificatif au format .jpg, .jpeg ou .png ");
 
     const email = JSON.parse(localStorage.getItem("user")).email;
     const bill = {
